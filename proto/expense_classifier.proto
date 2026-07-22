@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package expenseclassifier.v1;
+
+option java_multiple_files = true;
+option java_package = "com.cpallas.expenses.ml.grpc";
+option java_outer_classname = "ExpenseClassifierProto";
+
+service ExpenseClassifier {
+  rpc Predict(PredictRequest) returns (PredictionResponse);
+  rpc UploadTrainingData(UploadTrainingDataRequest) returns (UploadTrainingDataResponse);
+  rpc Train(TrainRequest) returns (TrainResponse);
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
+
+message Category {
+  string id = 1;
+  string name = 2;
+}
+
+message PredictRequest {
+  int64 chat_id = 1;
+  string raw_text = 2;
+  string description = 3;
+  double amount = 4;
+  repeated Category available_categories = 5;
+}
+
+message Alternative {
+  string category_id = 1;
+  string category_name = 2;
+  double confidence = 3;
+}
+
+message PredictionResponse {
+  string category_id = 1;
+  string category_name = 2;
+  double confidence = 3;
+  bool needs_review = 4;
+  repeated Alternative alternatives = 5;
+  string model_version = 6;
+}
+
+message TrainingExample {
+  int64 chat_id = 1;
+  string raw_text = 2;
+  string description = 3;
+  double amount = 4;
+  string category_id = 5;
+  string category_name = 6;
+  string source = 7;
+}
+
+message UploadTrainingDataRequest {
+  int64 chat_id = 1;
+  bool replace_chat_data = 2;
+  bool train_after_upload = 3;
+  repeated TrainingExample examples = 4;
+}
+
+message UploadTrainingDataResponse {
+  int32 accepted_count = 1;
+  int32 skipped_count = 2;
+  bool trained = 3;
+  string message = 4;
+}
+
+message TrainRequest {
+  int64 chat_id = 1;
+}
+
+message TrainResponse {
+  bool trained = 1;
+  int32 examples_count = 2;
+  int32 categories_count = 3;
+  string model_version = 4;
+  string message = 5;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status = 1;
+  int32 trained_models_count = 2;
+}
